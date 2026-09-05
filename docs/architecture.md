@@ -103,9 +103,16 @@ QueueMind is an **AI-powered Emergency Department (ED) Patient Flow Intelligence
 - **Directional Categorization & Ranking**: Categorizes feature contributions into flow accelerators (`increases_time`) versus expeditors (`decreases_time`) with rank ordering.
 - **Strict Non-Causal Framing**: Explicitly documents and enforces that SHAP attributions represent local statistical associations within the trained model, not counterfactual or clinical causal mechanisms. Leakage-prohibited features are strictly rejected at the explainability boundary.
 
-### 2.6 Simulation Layer (`src/queuemind/simulation/`)
-- **Queue Health Score**: A composite operational health index (0–100) scoring real-time queue stability.
-- **What-If Engine**: Evaluates how counterfactual modifications (e.g. accelerating discharge throughput by 20% or absorbing a multi-casualty arrival spike) affect forecasted waiting time and queue health.
+### 2.6 Simulation Layer (`src/queuemind/queue_health/` and `src/queuemind/simulation/`)
+- **Queue Health Score (`queue_health/score.py`)**: Standardized 0–100 operational index synthesizing active bed occupancy ($w=0.50$), arrival intake velocity ($w=0.30$), and high-acuity workload ($w=0.20$). Includes configurable state categorization (`HEALTHY`, `MODERATE`, `BUSY`, `CRITICAL`), dominant factor attribution, and non-clinical operational summaries.
+- **State Classification (`queue_health/states.py`)**: Type-safe enum and boundary validation (`QueueHealthState`, `QueueHealthStateThresholds`, `classify_queue_health_state`).
+- **Discrete-Time Flow Conservation (`simulation/what_if.py`)**: `BaselineTrajectory` preserving discrete-time flow dynamics ($C(t+\Delta t) = \max(0, C(t) + \text{Arr} - \text{Dep})$) with non-negative active census clamping.
+- **What-If Scenario Simulation Engine**:
+  - `simulate_discharge_acceleration`: Models $+X\%$ throughput acceleration and bed-load reduction.
+  - `simulate_capacity_reduction`: Models constrained operational capacity and tracks peak overflow.
+  - `simulate_arrival_surge`: Injects $+N$ presentations across $M$ intervals to model surge absorption and recovery.
+- **Queue Stability Evaluator (`evaluate_queue_stability`)**: Evaluates queue momentum into `STABLE`, `STRAINED`, or `UNSTABLE`.
+- **Non-Causal Guardrail (`WAITING_TIME_UNAVAILABLE_PAYLOAD`)**: Transparently discloses the absence of interventional counterfactuals in MIMIC-IV-ED, rejecting causal waiting-time reduction claims.
 
 ### 2.7 Serving & User Interface (`api/` and `frontend/`)
 - **FastAPI API Gateway**: Exposes asynchronous REST endpoints with Pydantic request/response schemas.

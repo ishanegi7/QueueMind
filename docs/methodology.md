@@ -319,3 +319,52 @@ QueueMind identifies operational backlogs through mathematical queue signals (st
 ### 12.2 Congestion State Representation
 Situational awareness categories (`HEALTHY`, `MODERATE`, `BUSY`, `CRITICAL`) are computed using configurable prototype bed capacity thresholds. These categories provide situational context for dashboard operators and do not represent formal hospital triage policy.
 
+---
+
+## 13. Queue Health Score (Composite Operational Index)
+
+### 13.1 Conceptual Formulation
+The **Queue Health Score** is an administrative index on $[0.0, 100.0]$ designed to synthesize multi-dimensional ED pressure into a single, intuitive operational indicator for non-clinical flow management.
+
+### 13.2 Normalized Component Pressures
+1. **Congestion Pressure ($P_{\text{congestion}}$)**:
+   $$P_{\text{congestion}} = \text{clip}\left(\frac{\text{Active Census}}{\text{Capacity Reference}} \times 100.0, 0.0, 100.0\right)$$
+   Reflects physical bed occupancy relative to nominal capacity (default: 50 beds).
+2. **Arrival Intake Pressure ($P_{\text{arrivals}}$)**:
+   $$P_{\text{arrivals}} = \text{clip}\left(\frac{\text{Recent Arrivals (60m)}}{\text{Arrival Rate Reference}} \times 100.0, 0.0, 100.0\right)$$
+   Reflects intake velocity relative to nominal hourly capacity (default: 12 patients/hour).
+3. **High-Acuity Workload Pressure ($P_{\text{acuity}}$)**:
+   $$P_{\text{acuity}} = \text{clip}\left(\frac{\text{High Acuity Fraction (ESI } \le 2\text{)}}{\text{Acuity Reference}} \times 100.0, 0.0, 100.0\right)$$
+   Reflects resource intensity (default: 0.30 of active census).
+
+### 13.3 Composite Aggregation & Normalization
+$$\text{Score} = \text{clip}\left(\sum_{k} w_k P_k, 0.0, 100.0\right)$$
+where $w_{\text{congestion}} + w_{\text{arrivals}} + w_{\text{acuity}} = 1.0$ (defaults: 0.50, 0.30, 0.20).
+
+### 13.4 State Mapping & Factor Attribution
+- States: `HEALTHY` ($\le 30$), `MODERATE` ($\le 60$), `BUSY` ($\le 80$), `CRITICAL` ($> 80$).
+- Dominant Factor: $\arg\max_k (w_k P_k)$, enabling plain-language operational root cause attribution.
+
+---
+
+## 14. Operational What-If Simulation Engine
+
+### 14.1 Discrete-Time Flow Conservation
+All what-if scenario trajectories strictly enforce the discrete-time balance equation:
+$$C(t + \Delta t) = \max\left(0.0, C(t) + \text{Arrivals}(t) - \text{Departures}(t)\right)$$
+Guaranteeing non-negative active census and conservation of patient volume.
+
+### 14.2 Supported Operational Perturbations
+1. **Scenario A: Discharge Acceleration**: Multiplies interval departures by $(1 + \alpha)$ to evaluate throughput gains from expedited inpatient transfers or discharge lounge utilization.
+2. **Scenario B: Capacity Reduction**: Constrains operational bed capacity to model bed closures or staffing shortages, quantifying peak bed overflow.
+3. **Scenario C: Arrival Surge Shocks**: Adds $N$ presentations distributed across $M$ initial time steps, modeling mass-casualty or bus arrival surge dynamics and subsequent recovery.
+
+### 14.3 Operational Queue Stability Classification
+- **`STABLE`**: $\text{Net Flow} \le 0$ and $\Delta \text{Census} \le 0$.
+- **`STRAINED`**: $0 < \text{Net Flow} \le 10$ and $C_{\text{final}} \le 1.5 \times C_{\text{initial}}$.
+- **`UNSTABLE`**: $\text{Net Flow} > 10$ or $C_{\text{final}} > 1.5 \times C_{\text{initial}}$.
+
+### 14.4 Non-Causal Semantics & Limitation Boundaries
+Retrospective observational EHR data (MIMIC-IV-ED) contains no counterfactual experiments. The engine explicitly disclaims causal waiting-time effects, returning a standardized non-causal disclaimer payload (`waiting_time_impact: unavailable`) and restricting quantitative projections to aggregate department census dynamics.
+
+

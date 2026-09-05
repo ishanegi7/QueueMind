@@ -192,3 +192,26 @@ Systematic audits partition test performance across:
 | **30m** | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | Scaffolded & Verified |
 | **60m** | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | Scaffolded & Verified |
 | **120m** | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | *Pending Real Run* | Scaffolded & Verified |
+
+---
+
+## 10. Operational Simulation & What-If Engine Specifications
+
+### 10.1 Module Architecture
+- **Location**: `src/queuemind/queue_health/` and `src/queuemind/simulation/`.
+- **Primary Contracts**:
+  - `calculate_queue_health_score`: Computes composite operational health score (0–100), state (`HEALTHY`, `MODERATE`, `BUSY`, `CRITICAL`), and dominant pressure driver.
+  - `simulate_discharge_acceleration`: Models $+X\%$ throughput improvement.
+  - `simulate_capacity_reduction`: Models constrained bed limits and overflow.
+  - `simulate_arrival_surge`: Models sudden influx shocks ($+N$ patients).
+  - `evaluate_queue_stability`: Evaluates queue momentum (`STABLE`, `STRAINED`, `UNSTABLE`).
+
+### 10.2 Intended Operational Use
+- **Administrative Decision Support**: Enabling ED managers to evaluate the quantitative impact of operational adjustments before implementation.
+- **Surge Preparedness**: Modeling absorption dynamics for ambulance diversions or mass casualty presentations.
+
+### 10.3 Non-Causal Boundary & Scientific Disclaimers
+- **Observational Limitations**: MIMIC-IV-ED lacks interventional counterfactual timestamps. Counterfactual waiting times cannot be causally guaranteed.
+- **Explicit Payload Contract**: All simulation outputs include `waiting_time_impact: {"status": "unavailable"}` explaining the causal boundary to prevent clinical misinterpretation.
+- **Physical Clamping**: Census trajectories are lower-bounded at $0.0$, strictly adhering to conservation of mass.
+
