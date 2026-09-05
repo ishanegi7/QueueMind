@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-950: #0a0f1c; /* Slightly deeper than standard tailwind slate-950 */
+}
+
+/* Base custom styles for the dashboard */
+body {
+  background-color: var(--color-slate-950);
+}
+
+/* Custom rotate utility for the SVG Gauge */
+@utility rotate-135 {
+  transform: rotate(135deg);
+}
