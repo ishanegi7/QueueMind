@@ -1,0 +1,102 @@
+# ==========================================
+# Python & Bytecode
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+.env
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# Packaging & Builds
+# ==========================================
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# Testing & Code Quality
+# ==========================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# IDEs & OS Files
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
+logs/
+
+# ==========================================
+# Local Trained Model Artifacts
+# ==========================================
+models/*.pkl
+models/*.joblib
+models/*.json
+models/*.onnx
+models/patient_time/*
+models/congestion/*
+!models/.gitkeep
+
+# ==========================================
+# Healthcare Datasets (MIMIC-IV-ED / Derived)
+# Strict compliance with PhysioNet DUA: Never commit data
+# ==========================================
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/external/*
+!data/external/.gitkeep
+!data/README.md
+
+# Large dataset file formats anywhere in tree
+*.csv
+*.parquet
+*.csv.gz
+*.tar.gz
+*.zip
+
+# ==========================================
+# Jupyter Notebooks Checkpoints
+# ==========================================
+.ipynb_checkpoints
+*-checkpoint.ipynb

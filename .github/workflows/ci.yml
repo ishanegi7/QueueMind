@@ -1,0 +1,45 @@
+name: CI Quality & Test Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with Flake8
+        run: |
+          flake8 src tests
+
+      - name: Check Formatting with Black
+        run: |
+          black --check src tests
+
+      - name: Type Check with Mypy
+        run: |
+          mypy src/queuemind
+
+      - name: Run Pytest Suite with Coverage
+        run: |
+          pytest --cov=queuemind --cov-report=xml --cov-report=term-missing
