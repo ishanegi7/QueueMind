@@ -24,6 +24,25 @@ import type {
   PatientFlowResponse
 } from "@/lib/types";
 
+const DEMO_SNAPSHOT = {
+  active_census: 45,
+  recent_arrivals_60m: 12,
+  high_acuity_ratio: 0.25,
+};
+
+const DEMO_CONGESTION_SNAPSHOT = {
+  current_active_census: 45,
+  recent_arrivals_60m: 12,
+  recent_departures_60m: 8,
+  flow_ratio_60m: 1.5,
+  high_acuity_census: 11,
+  high_acuity_ratio: 0.24,
+  hour_sin: 0,
+  hour_cos: 1,
+  dayofweek: 3,
+  is_weekend: 0
+};
+
 export default function DashboardPage() {
   const [queueHealth, setQueueHealth] = useState<QueueHealthResponse | null>(null);
   const [congestion, setCongestion] = useState<CongestionForecastResponse | null>(null);
@@ -34,52 +53,70 @@ export default function DashboardPage() {
   const [error, setError] = useState<{type: "connection"|"model"|"generic", message: string} | null>(null);
   const [pfError, setPfError] = useState<{type: "validation"|"model"|"generic", message: string} | null>(null);
 
-  const fetchDashboardData = async () => {
+  useEffect(() => {
+    let mounted = true;
+
+    const doFetch = async () => {
+      try {
+        const [qhData, congData] = await Promise.all([
+          computeQueueHealth(DEMO_SNAPSHOT),
+          forecastCongestion(DEMO_CONGESTION_SNAPSHOT)
+        ]);
+
+        if (mounted) {
+          setQueueHealth(qhData);
+          setCongestion(congData);
+          setError(null);
+        }
+      } catch (err) {
+        if (!mounted) return;
+        if (err instanceof ApiConnectionError) {
+          setError({ type: "connection", message: err.message });
+        } else if (err instanceof ApiServiceError && err.statusCode === 503) {
+          setError({ type: "model", message: err.message });
+        } else {
+          setError({ type: "generic", message: err instanceof Error ? err.message : "Unknown error" });
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    doFetch();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleRetry = () => {
     setIsLoading(true);
     setError(null);
-    try {
-      // For the dashboard, we provide a default mock snapshot to power the views.
-      // In a real integration, this would come from an ED EHR feed.
-      const snapshot = {
-        active_census: 45,
-        recent_arrivals_60m: 12,
-        high_acuity_ratio: 0.25,
-      };
-
-      const [qhData, congData] = await Promise.all([
-        computeQueueHealth(snapshot),
-        forecastCongestion({
-          current_active_census: 45,
-          recent_arrivals_60m: 12,
-          recent_departures_60m: 8,
-          flow_ratio_60m: 1.5,
-          high_acuity_census: 11,
-          high_acuity_ratio: 0.24,
-          hour_sin: Math.sin(2 * Math.PI * (new Date().getHours() / 24)),
-          hour_cos: Math.cos(2 * Math.PI * (new Date().getHours() / 24)),
-          dayofweek: new Date().getDay(),
-          is_weekend: [0, 6].includes(new Date().getDay()) ? 1 : 0
-        })
-      ]);
-
-      setQueueHealth(qhData);
-      setCongestion(congData);
-    } catch (err) {
-      if (err instanceof ApiConnectionError) {
-        setError({ type: "connection", message: err.message });
-      } else if (err instanceof ApiServiceError && err.statusCode === 503) {
-        setError({ type: "model", message: err.message });
-      } else {
-        setError({ type: "generic", message: err instanceof Error ? err.message : "Unknown error" });
+    // Extract a fetcher for retry if needed, but since we can't easily share it 
+    // without triggering ESLint, we duplicate the minimal fetch logic for retry here.
+    const doFetch = async () => {
+      try {
+        const [qhData, congData] = await Promise.all([
+          computeQueueHealth(DEMO_SNAPSHOT),
+          forecastCongestion(DEMO_CONGESTION_SNAPSHOT)
+        ]);
+        setQueueHealth(qhData);
+        setCongestion(congData);
+        setError(null);
+      } catch (err) {
+        if (err instanceof ApiConnectionError) {
+          setError({ type: "connection", message: err.message });
+        } else if (err instanceof ApiServiceError && err.statusCode === 503) {
+          setError({ type: "model", message: err.message });
+        } else {
+          setError({ type: "generic", message: err instanceof Error ? err.message : "Unknown error" });
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    doFetch();
   };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
 
   const handlePatientFlowSubmit = async (req: PatientFlowRequest) => {
     setIsPredicting(true);
@@ -109,16 +146,21 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="pt-10 max-w-2xl mx-auto">
-        <ErrorState type={error.type} message={error.message} onRetry={fetchDashboardData} />
+        <ErrorState type={error.type} message={error.message} onRetry={handleRetry} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Operations Dashboard</h1>
-        <p className="text-slate-400 mt-1">Real-time departmental flow intelligence snapshot.</p>
+      <div className="mb-8 flex flex-col items-start gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Operations Dashboard</h1>
+          <p className="text-slate-400 mt-1">Departmental flow intelligence snapshot.</p>
+        </div>
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-3 py-1 rounded-full text-xs font-medium">
+          Demo Input / Example Snapshot — not live hospital data.
+        </div>
       </div>
       
       <Disclaimer compact={false} />
@@ -132,8 +174,8 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-6">
               <FlowKPICards 
                 activeCensus={congestion.current_active_census}
-                recentArrivals={12} // mock snapshot value
-                recentDepartures={8} // mock snapshot value
+                recentArrivals={12} // demo value
+                recentDepartures={8} // demo value
                 highAcuityRatio={queueHealth.components.high_acuity_pressure ? 0.25 : 0} 
               />
               <CongestionForecastCard data={congestion} />

@@ -12,7 +12,6 @@ interface BaselineConfigFormProps {
 
 export function BaselineConfigForm({ scenarioType, onSubmit, isLoading }: BaselineConfigFormProps) {
   const [initialCensus, setInitialCensus] = useState(40);
-  const [intervalsCount, setIntervalsCount] = useState(4);
   const [intervalMinutes, setIntervalMinutes] = useState(30);
   const [arrivalsStr, setArrivalsStr] = useState("5,6,5,4");
   const [departuresStr, setDeparturesStr] = useState("4,5,4,3");

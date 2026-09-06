@@ -4,7 +4,6 @@ import React from "react";
 import { Card } from "@/components/common/Card";
 import type { SimulationResponse } from "@/lib/types";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -12,7 +11,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Area,
   ComposedChart
 } from "recharts";
 import { formatTimestamp } from "@/lib/utils";
@@ -65,7 +63,7 @@ export function SimulationChart({ result }: SimulationChartProps) {
           
           <Tooltip 
             contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc', borderRadius: '0.5rem' }}
-            formatter={(value: any) => [value.toFixed(1), "Patients"]}
+            formatter={(value: number | string | readonly (number | string)[] | undefined) => [Number(value).toFixed(1), "Patients"]}
           />
           
           <Legend wrapperStyle={{ paddingTop: '20px' }} />

@@ -54,7 +54,10 @@ export function ShapExplanation({ explanation }: ShapExplanationProps) {
             <Tooltip 
               cursor={{fill: '#1e293b'}}
               contentStyle={{backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc', borderRadius: '0.5rem'}}
-              formatter={(value: any) => [`${value > 0 ? '+' : ''}${value.toFixed(1)} min`, 'Contribution']}
+              formatter={(value: number | string | readonly (number | string)[] | undefined) => {
+                const numericValue = Number(value);
+                return [`${numericValue > 0 ? '+' : ''}${numericValue.toFixed(1)} min`, 'Contribution'];
+              }}
             />
             <Bar dataKey="attribution" radius={[0, 4, 4, 0]}>
               {sortedFeatures.map((entry, index) => (

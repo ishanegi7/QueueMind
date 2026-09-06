@@ -17,7 +17,7 @@ export function PatientFlowForm({ onSubmit, isLoading }: PatientFlowFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    let parsedValue: any = value;
+    let parsedValue: string | number | boolean | null = value;
 
     if (type === "number") {
       parsedValue = value === "" ? null : Number(value);
@@ -27,7 +27,7 @@ export function PatientFlowForm({ onSubmit, isLoading }: PatientFlowFormProps) {
       parsedValue = null;
     }
 
-    setFormData((prev) => ({ ...prev, [name]: parsedValue }));
+    setFormData((prev) => ({ ...prev, [name]: parsedValue } as unknown as Partial<PatientFlowRequest>));
   };
 
   const handleSubmit = (e: React.FormEvent) => {

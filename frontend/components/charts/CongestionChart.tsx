@@ -80,10 +80,11 @@ export function CongestionChart({ data: forecastData }: CongestionChartProps) {
             <Tooltip 
               contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc', borderRadius: '0.5rem' }}
               labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-              formatter={(value: any, name: any) => {
-                if (name === "census") return [value.toFixed(1), "Predicted Census"];
+              formatter={(value: number | string | readonly (number | string)[] | undefined, name: string | number | undefined) => {
+                const numericValue = Number(value);
+                if (name === "census") return [numericValue.toFixed(1), "Predicted Census"];
                 if (name === "range") return [value, "Range"];
-                return [value.toFixed(1), name];
+                return [numericValue.toFixed(1), name];
               }}
               labelFormatter={(label, payload) => {
                 if (payload && payload.length > 0) {
