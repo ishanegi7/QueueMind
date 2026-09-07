@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: queuemind-api:local
+    container_name: queuemind-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8000
+      - LOG_LEVEL=INFO
+      # Mount model paths locally for testing, if models exist
+      - PATIENT_FLOW_MODEL_PATH=/app/models/patient_flow_xgboost.joblib
+      - CONGESTION_MODEL_PATH=/app/models/congestion_xgboost.joblib
+    volumes:
+      # Mount models folder if it exists locally so the container can access it
+      - ./models:/app/models:ro
+    restart: unless-stopped
+
+# Note: For the Next.js frontend development, running `npm run dev` directly 
+# on the host is highly preferred for hot-reloading performance and simplicity.
+# Ensure NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 in frontend/.env.local

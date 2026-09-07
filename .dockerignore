@@ -1,0 +1,40 @@
+# Ignore git directory
+.git/
+.gitignore
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+
+# Virtual environments
+venv/
+env/
+.env
+.env.local
+
+# Jupyter/Notebooks
+.ipynb_checkpoints/
+notebooks/
+
+# Frontend
+frontend/
+node_modules/
+.next/
+
+# Data and Models
+# We do not bundle large raw data or model artifacts into the container image
+data/
+models/
+raw_data/
+processed_data/
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -18,7 +18,11 @@ class Settings(BaseSettings):
     )
     API_PORT: int = Field(
         default=8000,
-        description="Port for the FastAPI uvicorn server.",
+        description="Legacy port for the FastAPI uvicorn server. Overridden by PORT.",
+    )
+    PORT: int | None = Field(
+        default=None,
+        description="Standard port used by Cloud Run. Overrides API_PORT if set.",
     )
     ENVIRONMENT: str = Field(
         default="development",
