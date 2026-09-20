@@ -150,7 +150,9 @@ flake8 src tests
 mypy src/queuemind
 ```
 
----
+----
+
+
 
 ## 8. License
 
